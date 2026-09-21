@@ -1,0 +1,229 @@
+Create a text file named PROJECT_REPORT_EXTRACT.txt that extracts all important technical information from my existing movie recommendation Streamlit project.
+
+Do not modify the app logic.
+Do not change any model code.
+Only inspect the project and generate the text file.
+
+The text file should contain report-ready information for my college project report.
+
+Include the following sections:
+
+1. Project Overview
+- Project title
+- Main objective
+- Problem statement
+- Why recommendation systems are useful
+- How this project combines data warehousing and data mining
+
+2. Dataset Information
+- Input dataset files used by the app
+- Columns in final_movies_dataset.csv
+- Columns in final_ratings_dataset.csv
+- Any poster lookup file if present
+- Number of movies
+- Number of users
+- Number of ratings
+- Rating scale
+- Dataset sparsity if calculated
+- Metadata coverage such as IMDb fields, genres, posters, etc.
+
+3. Data Warehousing Details
+- Explain the ETL pipeline used before the app
+- Sources integrated: MovieLens, IMDb, and TMDb/poster lookup if present
+- Explain the role of movie_id, imdbId, tconst, and tmdbId
+- Explain fact and dimension tables if movie_warehouse.db exists
+- List warehouse tables and columns if SQLite DB exists
+- Describe star schema:
+  fact_ratings
+  dim_movies
+  dim_users
+  dim_time
+
+4. Streamlit UI Pages
+For every page in the sidebar, extract:
+- Page name
+- Purpose of the page
+- Inputs used
+- Outputs shown
+- Data mining or warehousing concept demonstrated
+- Important charts/tables/cards
+- Any heuristics used
+
+5. Recommendation Models
+For each model implemented in the code, extract:
+
+A. Content-Based Filtering
+- Features used
+- Vectorization method
+- Similarity metric
+- Recommendation logic
+- Filters used
+- Output score meaning
+- Limitations
+
+B. User-Based Collaborative Filtering
+- User-item matrix construction
+- Similarity metric
+- Mean-centering logic if used
+- Prediction formula in plain English
+- Neighbor selection logic
+- How already-rated movies are excluded
+- Output score meaning
+- Limitations
+
+C. Item-Based Collaborative Filtering
+- Item-user matrix construction
+- Similarity metric
+- Recommendation logic
+- Output score meaning
+- Limitations
+
+D. Matrix Factorization / SVD
+- Exact implementation used
+- Whether Surprise SVD or sklearn TruncatedSVD is used
+- Mean-centering method
+- Number of latent factors/components if specified
+- How missing values are handled
+- Prediction reconstruction logic
+- Score clipping range
+- Why mean-centering was used
+- Limitations
+
+E. Hybrid Recommendation
+- Component models combined
+- Weighting formula
+- Default weights
+- Score normalization method
+- How final score is calculated
+- How recommendation reasons are generated
+- How already-rated movies are excluded
+- Limitations
+
+F. New User / Cold Start
+- Inputs used for new users
+- Why collaborative filtering cannot work for new users
+- Content/genre-based fallback logic
+- Output recommendation method
+- Limitations
+
+6. Clustering
+Extract:
+- Feature matrix used for clustering
+- Whether raw ratings or genre preference vectors are used
+- Genre splitting method
+- Genre bias calculation method
+- Standardization method
+- KMeans parameters
+- K range tested
+- Inertia calculation
+- Silhouette score calculation
+- Final/observed silhouette scores if hardcoded or displayed
+- How clusters are interpreted
+- What outputs are shown for clusters
+
+7. Association Rule Mining
+Extract:
+- Transaction construction method
+- Rating threshold for considering a movie liked
+- Minimum support
+- Confidence
+- Lift
+- Whether mlxtend Apriori or manual pair-based rules are used
+- Rule generation logic
+- Output columns
+- Interpretation of support, confidence, and lift
+- Limitations
+
+8. Genre DNA / Genre Similarity Features
+Extract:
+- Genre vocabulary creation
+- Genre vector creation
+- Whether multi-hot or normalized genre blend is used
+- Similarity metric
+- Meaning of DNA score
+- Debug/sanity checks if present
+- Known fixes applied if comments mention them
+
+9. Extra Analytical Pages
+For pages like:
+- Compare Users
+- Popularity Trends
+- Rating Bias Analyser
+- Serendipity Recommender
+- Movie Timeline
+- Movie Explorer
+extract:
+- What the page does
+- Algorithm/heuristic used
+- Inputs
+- Outputs
+- Metrics or scores calculated
+- Interpretation
+
+10. Evaluation Metrics
+Extract:
+- Metrics calculated:
+  RMSE
+  MAE
+  Precision@10
+  Recall@10
+  Silhouette Score
+  Inertia
+  Support
+  Confidence
+  Lift
+- Exact formulas in plain English
+- Train-test split method
+- Relevant item definition for top-K evaluation
+- Number of evaluated pairs/users if available
+- Final displayed results if present:
+  SVD RMSE = 0.9502
+  SVD MAE = 0.7343
+  SVD Precision@10 = 0.0086
+  SVD Recall@10 = 0.0102
+  User-Based CF RMSE = 1.1537
+  User-Based CF MAE = 0.8791
+  KMeans silhouette around 0.299 if present
+- Explain why RMSE/MAE are good and Precision/Recall are low due to sparse data
+
+11. Important Fixes / Technical Decisions
+Extract and describe:
+- SVD missing ratings were not treated as real zero ratings
+- Mean-centering was used
+- Genre DNA bug fixed using correct multi-hot vectors
+- Clustering changed from sparse movie-rating matrix to genre preference/bias matrix
+- Poster URLs added as separate lookup to avoid changing training dataset
+- Streamlit/Replit compatibility fixes if present
+
+12. Technologies and Libraries
+List:
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- Streamlit
+- SQLite
+- Matplotlib/Plotly if used
+- mlxtend if used
+- requests/tqdm if poster script exists
+- Any other imported libraries
+
+13. Report-Ready Summary
+At the end, write a concise but detailed summary of:
+- What was built
+- What algorithms were used
+- What warehousing methods were used
+- What results were achieved
+- What limitations exist
+- What future improvements are possible
+
+Important requirements:
+- The output must be written to PROJECT_REPORT_EXTRACT.txt.
+- Make it detailed and organized with headings.
+- Use plain text, not markdown tables if possible.
+- Include formulas in readable plain text.
+- Do not invent algorithms that are not in the code.
+- If something is missing or uncertain, write “Not found in code” instead of guessing.
+- Inspect app.py and any helper/model files in the project.
+- Include actual variable/function names where useful.
+- Keep it report-ready and easy to paste into ChatGPT for final report generation.

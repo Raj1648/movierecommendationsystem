@@ -1,0 +1,135 @@
+Fix the evaluation and clustering issues in my existing Streamlit movie recommendation project.
+
+Important context:
+The project already uses:
+- output/final_movies_dataset.csv
+- output/final_ratings_dataset.csv
+
+Current issues:
+1. SVD metrics are extremely bad:
+   RMSE = 3.6397
+   MAE = 3.4823
+   Precision@10 = 0.0267
+   Recall@10 = 0.0416
+
+This likely happened because missing ratings were filled with 0 and treated as real ratings.
+
+2. User-Based CF metrics are acceptable:
+   RMSE = 1.1100
+   MAE = 0.8532
+
+3. K-Means clustering silhouette score is low because clustering is probably being done on sparse raw user-movie ratings.
+
+Required fixes:
+
+A. Fix SVD / Matrix Factorization
+- Do NOT treat missing ratings as real 0 ratings.
+- Implement corrected SVD using one of these approaches:
+
+Preferred:
+- Use scikit-surprise SVD if installation works.
+- Add scikit-surprise to requirements.txt.
+- Use Dataset.load_from_df with columns:
+  user_id, movie_id, rating
+- Use Reader(rating_scale=(0.5, 5))
+- Train/test split ratings properly.
+- Evaluate using surprise accuracy.rmse and accuracy.mae.
+
+Fallback if scikit-surprise fails:
+- Use sklearn TruncatedSVD only after user-mean centering:
+  1. Create user-movie matrix with NaN for missing ratings.
+  2. Compute user mean rating.
+  3. Subtract user mean from observed ratings.
+  4. Fill only missing centered values with 0.
+  5. Apply TruncatedSVD.
+  6. Reconstruct ratings.
+  7. Add user mean back.
+  8. Clip predictions to rating range 0.5–5.0.
+- Clearly label this as approximate SVD.
+
+B. Fix Precision@K and Recall@K
+- Use proper train-test split.
+- Define relevant movies as actual rating >= 4.0 in the test set.
+- For each evaluated user:
+  - Recommend top K movies not seen in training.
+  - Compare recommendations with relevant test movies.
+- Compute:
+  Precision@K = hits / K
+  Recall@K = hits / number of relevant test movies
+- Skip users with no relevant movies in the test set.
+- Evaluate on a reasonable sample if full evaluation is slow.
+- Show sample size clearly.
+
+C. Improve Hybrid Recommendation
+- Hybrid should combine:
+  - Corrected SVD predicted score
+  - User-based CF score
+  - Content-based score from user’s highly rated movies
+- Normalize all scores to the same 0–1 range before combining.
+- Default weights:
+  SVD = 0.5
+  User-CF = 0.3
+  Content = 0.2
+- Add sliders in UI.
+- Ensure recommendations exclude movies already rated by the user.
+- Show final hybrid score and reason.
+
+D. Fix K-Means clustering
+- Do NOT cluster directly on sparse raw user-movie matrix by default.
+- Create user genre preference vectors:
+  1. Join ratings with movies using movie_id.
+  2. Split genres.
+  3. For each user and genre, compute average rating or weighted rating count.
+  4. Create user-genre matrix.
+  5. Fill missing with 0.
+  6. Standardize using StandardScaler.
+  7. Apply KMeans.
+- Recalculate:
+  - Elbow curve/inertia
+  - Silhouette score
+- In UI, explain that genre-based clustering is more interpretable than raw sparse rating clustering.
+- Show:
+  - selected user’s cluster
+  - top genres of that cluster
+  - cluster size
+  - recommended popular movies from that cluster
+
+E. Evaluation Metrics Page
+Update the Evaluation Metrics page to show:
+- SVD RMSE
+- SVD MAE
+- SVD Precision@10
+- SVD Recall@10
+- User-Based CF RMSE
+- User-Based CF MAE
+- Hybrid Precision@10 if feasible
+- Hybrid Recall@10 if feasible
+- K-Means silhouette score
+- K-Means inertia
+- Association rule examples if available
+
+Add interpretation text:
+- RMSE/MAE lower is better.
+- Precision@10/Recall@10 higher is better.
+- Silhouette score close to 1 is better.
+- Recommendation datasets are sparse, so moderate clustering scores are expected.
+
+F. Performance
+- Use st.cache_data and st.cache_resource.
+- Avoid recomputing SVD, similarity matrices, and KMeans every page refresh.
+- Use sparse matrices where possible.
+- If evaluation is slow, evaluate on a sample of users and clearly display “sample-based evaluation”.
+
+G. Keep app stable
+- Do not break existing pages.
+- Handle missing columns gracefully.
+- If scikit-surprise cannot install, automatically use the sklearn fallback.
+- Add clear comments in the code.
+- Make sure the app still runs with:
+  streamlit run app.py
+
+Expected result:
+- SVD RMSE should become around 0.8–1.1, not 3+.
+- SVD MAE should become around 0.6–0.9.
+- Precision@10 and Recall@10 should improve or at least be calculated correctly.
+- K-Means clustering should be more interpretable using genre preference vectors.

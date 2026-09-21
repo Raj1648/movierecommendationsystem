@@ -1,0 +1,280 @@
+Build a complete Streamlit web app for my college Data Mining and Warehousing project.
+
+Project title:
+Hybrid Movie Recommendation System using Data Warehousing and Data Mining
+
+Use the already-generated output datasets:
+1. output/final_movies_dataset.csv
+2. output/final_ratings_dataset.csv
+3. output/movie_warehouse.db if available
+
+Do NOT download MovieLens or IMDb again.
+Do NOT use raw IMDb files.
+The app must run only from these final output datasets.
+
+Main goals:
+- Show data warehousing analytics
+- Show multiple data mining recommendation techniques
+- Provide a clean Netflix-style movie recommendation UI
+- Include evaluation metrics
+
+Dataset columns may include:
+final_movies_dataset.csv:
+movie_id, movie_title, movielens_title, release_year, genres, tconst, imdbId, tmdbId, primaryTitle, runtimeMinutes, director, cast, imdb_rating, imdb_votes, content_features
+
+final_ratings_dataset.csv:
+user_id, movie_id, rating, timestamp, rating_datetime, date, year, month, day
+
+If any optional column is missing, handle it gracefully.
+
+App structure:
+Create a Streamlit sidebar with these pages:
+1. Dashboard
+2. Movie Explorer
+3. Content-Based Recommender
+4. User-Based Collaborative Filtering
+5. Item-Based Collaborative Filtering
+6. Matrix Factorization / SVD
+7. Hybrid Recommendation
+8. User Clustering
+9. Association Rules
+10. Evaluation Metrics
+11. New User / Cold Start
+
+General UI:
+- Modern dark movie-themed interface
+- Clean cards
+- Use columns/grid layout
+- Display movie titles, year, genres, IMDb rating, predicted rating, similarity score
+- If poster_url exists, show poster
+- If poster_url does not exist, show a clean placeholder card instead of crashing
+- Use st.cache_data and st.cache_resource for performance
+- Add clear explanations on every page so professors understand the data mining technique
+
+Important:
+Do not implement username/password authentication.
+For existing users, simulate login using MovieLens user_id.
+Add a dropdown called “Select Existing User ID”.
+The user’s old data comes from final_ratings_dataset.csv.
+
+Page 1: Dashboard
+Show:
+- Total movies
+- Total users
+- Total ratings
+- Average rating
+- Total genres
+- IMDb metadata coverage
+Charts:
+- Rating distribution
+- Top 10 most rated movies
+- Top 10 highest rated movies with at least 20 ratings
+- Most common genres
+- Ratings by year if year column exists
+Explain that this page represents warehouse analytics / OLAP-style summaries.
+
+Page 2: Movie Explorer
+Input:
+- Search/select movie title
+Show:
+- Movie title
+- Release year
+- Genres
+- IMDb rating and votes if available
+- Director and cast if available
+- MovieLens average rating and rating count
+- Poster if available
+Also show similar movies based on content similarity.
+
+Page 3: Content-Based Recommender
+Technique:
+- Use content_features if available
+- Otherwise build content_features from genres + movie_title + director + cast
+- Use TF-IDF Vectorizer
+- Use cosine similarity
+Input:
+- Select movie
+- Number of recommendations
+Optional:
+- Genre filter
+- Year range if release_year exists
+Output:
+- Top recommended similar movies
+- Similarity score
+- Movie metadata
+Explanation:
+“Content-based filtering recommends movies similar to a selected movie using metadata features.”
+
+Page 4: User-Based Collaborative Filtering
+Technique:
+- Create user-movie rating matrix
+- Use cosine similarity between users
+Input:
+- Select user_id
+- Number of recommendations
+Show:
+- User’s already rated movies
+- User average rating
+- User favorite genres
+Output:
+- Top recommended movies not already rated
+- Predicted/weighted score
+- Explanation: recommended because similar users liked these movies
+Handle sparse matrix efficiently.
+
+Page 5: Item-Based Collaborative Filtering
+Technique:
+- Create movie-user rating matrix
+- Use cosine similarity between movies
+Input:
+- Select movie
+- Number of recommendations
+Output:
+- Movies similar based on user rating behavior
+- Similarity score
+Explanation:
+“Item-based collaborative filtering finds movies rated similarly by users.”
+
+Page 6: Matrix Factorization / SVD
+Technique:
+Prefer sklearn TruncatedSVD or scipy sparse SVD.
+Do not require the surprise library unless installed.
+Create user-movie matrix.
+Fill missing values with 0 or use normalized ratings.
+Train SVD with a reasonable number of latent factors.
+Input:
+- Select user_id
+- Number of recommendations
+Output:
+- Top movies with predicted rating/score
+Explanation:
+“SVD learns hidden latent factors of users and movies and predicts missing ratings.”
+
+Page 7: Hybrid Recommendation
+This is the main final system.
+Combine:
+- SVD score
+- User-based collaborative score
+- Content-based score based on user’s highly rated movies
+Default weights:
+- SVD: 0.5
+- Collaborative filtering: 0.3
+- Content-based: 0.2
+Add sliders so user can change weights.
+Input:
+- Select user_id
+- Optional genre filter
+- Number of recommendations
+Output:
+- Final ranked recommendations
+- Final hybrid score
+- Short reason for each recommendation
+Example reason:
+“Recommended because SVD predicted a high score, similar users liked it, and it matches your preferred genres.”
+
+Page 8: User Clustering
+Technique:
+- Use K-Means on user-movie matrix or user genre preference matrix
+- Use sklearn KMeans
+Input:
+- Number of clusters K
+- Select user_id
+Output:
+- User’s cluster number
+- Cluster size
+- Top genres in that cluster
+- Top movies in that cluster
+Metrics:
+- Inertia
+- Silhouette score if feasible
+Explanation:
+“K-Means groups users with similar movie preferences.”
+
+Page 9: Association Rules
+Technique:
+- Convert each user into a transaction of movies rated >= 4
+- Use mlxtend apriori if available
+- If mlxtend is not available, implement a simple pair-based association rule system manually
+Input:
+- Minimum support
+- Minimum confidence
+- Minimum lift
+Output:
+- Rules like: If user liked Movie A, they may like Movie B
+- Support
+- Confidence
+- Lift
+Keep it efficient by using only popular movies if needed.
+
+Page 10: Evaluation Metrics
+Implement train-test split on ratings.
+Show metrics where feasible:
+- RMSE
+- MAE
+- Precision@10
+- Recall@10
+For:
+- User-Based CF
+- Item-Based CF if feasible
+- SVD
+- Hybrid if feasible
+Also show:
+- K-Means inertia
+- Silhouette score
+- Association rule support/confidence/lift examples
+Use tables and charts.
+If a metric is expensive, calculate on a sample and clearly label it as sample-based evaluation.
+
+Metric definitions:
+RMSE = sqrt(mean squared error)
+MAE = mean absolute error
+Precision@K = relevant recommended movies / K
+Recall@K = relevant recommended movies / total relevant movies
+
+Page 11: New User / Cold Start
+Purpose:
+Handle users with no historical ratings.
+Inputs:
+- Select favorite genres
+- Rate 5 to 10 popular movies
+Output:
+- Content-based recommendations
+- Explain cold-start problem
+Explanation:
+“For new users, collaborative filtering cannot work because no rating history exists, so the system uses genre preferences and initial ratings.”
+
+Technical requirements:
+- Create app.py
+- Create requirements.txt
+- Use pandas, numpy, scikit-learn, streamlit, matplotlib
+- Use scipy if needed
+- Use sqlite3 if reading warehouse db
+- Avoid heavy memory usage
+- Use sparse matrices where possible
+- Use caching
+- Make sure app runs with:
+streamlit run app.py
+
+Data safety:
+- If a column is missing, do not crash
+- If poster_url is missing, show placeholder
+- If director/cast is Unknown, still work
+- If there are too many users/movies, sample intelligently for expensive pages
+
+Deliverables:
+- app.py
+- requirements.txt
+- clear comments in code
+- clean UI
+- working recommendation methods
+- evaluation page
+
+Also include a small explanation section inside the app:
+“Project Pipeline”
+Data Sources → ETL → Data Warehouse → Data Mining → Recommendation → Evaluation
+
+Important project explanation:
+MovieLens is used as the core rating dataset.
+IMDb metadata was integrated through tconst/imdbId mapping.
+The final datasets are already ETL-processed and represent the warehouse-ready data.
+The app performs mining on top of these output datasets.

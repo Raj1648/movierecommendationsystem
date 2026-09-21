@@ -1,0 +1,100 @@
+Fix the remaining logical bugs in my movie recommendation Streamlit app.
+
+Current problems after testing:
+
+1. User-Based Collaborative Filtering:
+All top 10 recommendation prediction scores are exactly 5.
+This is wrong. Fix user-based CF prediction logic.
+
+Required fix:
+- Do not simply average neighbor ratings.
+- Do not clip everything to 5.
+- Use mean-centered collaborative filtering:
+  prediction(u, i) = mean_rating(u) + weighted_average(sim(u, v) * (rating(v, i) - mean_rating(v)))
+- Use only positive-similarity neighbors who rated the target movie.
+- Add epsilon to avoid divide-by-zero.
+- Clip final prediction to rating range 0.5 to 5.0 only after calculation.
+- Ensure output scores are varied, not all 5.
+- Exclude movies already rated by the selected user.
+- Display top recommendations with varied predicted scores.
+
+2. User Clustering:
+Almost all genres have similar values.
+This means the genre preference matrix is not meaningful.
+
+Required fix:
+- Rebuild user genre preference matrix correctly.
+- Split movie genres by the "|" character.
+- For each rating row, assign the rating to each genre of that movie.
+- For each user and genre, compute:
+  user_genre_avg_rating = average rating user gave to that genre
+- Compute global_genre_avg_rating.
+- Create genre preference value:
+  user_genre_bias = user_genre_avg_rating - global_genre_avg_rating
+- Fill missing genre values with 0.
+- Standardize using StandardScaler before KMeans.
+- Use this matrix for clustering.
+- In UI, show top positive genre biases for each cluster, not raw genre averages.
+- Cluster genre values should no longer all look equal.
+- Also show cluster size and sample top movies.
+
+3. Genre DNA:
+It still shows every movie as having every genre equally.
+Fix the genre vector creation completely.
+
+Required fix:
+- Build a clean genre vocabulary from the movies dataframe.
+- Genres are separated using "|".
+- For each movie, create a multi-hot vector:
+  1 if movie has that genre, 0 otherwise.
+- Do not assign all genres to all movies.
+- Do not normalize before verifying multi-hot correctness.
+- After multi-hot vector is correct, optionally normalize each row by the number of genres to get genre blend ratios.
+- For a movie with genres "Action|Adventure|Sci-Fi", only Action, Adventure, and Sci-Fi should be non-zero.
+- Add a debug expandable section in Genre DNA showing the selected movie’s raw genres and non-zero genre vector entries.
+- Closest DNA matches should be based on cosine similarity between these corrected vectors.
+
+4. Evaluation Metrics:
+SVD RMSE and MAE are now acceptable:
+SVD mean-centred RMSE = 0.9502
+SVD MAE = 0.7343
+Keep this SVD logic.
+
+But Precision@10 and Recall@10 are very low:
+Precision@10 = 0.0104
+Recall@10 = 0.0096
+
+Required fix:
+- Make top-K evaluation consistent.
+- Relevant movie = test rating >= 4.0.
+- For each test user:
+  - use training ratings as seen movies
+  - recommend top K unseen movies
+  - compare recommendations only against that user's relevant test movies
+- Skip users with zero relevant test movies.
+- Clearly show number of evaluated users.
+- If Precision@10 remains low, display an explanation that sparse test data makes top-K evaluation strict.
+- Do not fake metrics.
+
+5. Hybrid Recommendation:
+- Ensure hybrid uses corrected User-CF scores, corrected SVD scores, and content scores.
+- Normalize each component score to 0–1 before combining.
+- Exclude already-rated movies.
+- Output should have varied final scores.
+- Add reason text for recommendations.
+
+6. General:
+- Use st.cache_data and st.cache_resource where appropriate.
+- Do not break existing UI.
+- Handle missing columns gracefully.
+- Add small sanity-check sections:
+  - User-CF: show min/max/mean predicted scores
+  - Genre DNA: show selected movie’s actual genres and active genre vector entries
+  - Clustering: show top cluster genre biases
+
+Expected outcome:
+- User-Based CF top 10 scores should no longer all be 5.
+- Genre clustering should show meaningful different genre preferences.
+- Genre DNA should only activate genres actually belonging to the selected movie.
+- SVD RMSE/MAE should remain around 0.95/0.73.
+- Hybrid recommendations should become more reasonable and varied.
